@@ -1,1 +1,152 @@
-Hello World
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name='viewport' content='width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no'/>
+<title>nicehero!</title>
+<style>
+html, body{margin: 0; padding: 0; overflow: hidden; height: 100%; }
+#canvasContainer { position:absolute; left: 0; top: 0; width: 100%; height: 100%; }
+#canvasContainer canvas { transform: translateZ(0); }
+#canvasContainer2 { position:absolute; left: 0; top: 0; width: 640px; height: 960px; }
+#canvasContainer2 canvas { transform: translateZ(0); }
+</style>
+<script src="libs/pixi.js"></script>
+<script src="libs/pixi-spine.js"></script>
+<script src="libs/tweenjs-0.6.2.min.js"></script>
+<script src="libs/fairygui.js"></script>
+<script src="libs/rawinflate.min.js"></script>
+<script src="libs/require.js"></script>
+<script src="libs/stats.min.js"></script>
+</head>
+
+<body>
+<div id="canvasContainer">
+    <canvas></canvas>
+</div>
+<div id="canvasContainer2">
+    <canvas></canvas>
+</div>
+<script>
+function loadProgress(loader)
+{
+	let p = loader.progress;
+	loadingView.setProgress(p);
+	if (p >= 100) {
+		loader.off("progress", loadProgress, this);
+		loadingView.dispose();
+		loadingView = null;
+	}
+}
+var gRes = null;
+function resLoaded(loader)
+{
+	gRes = loader.resources;
+    loader.destroy();
+	
+	fgui.UIPackage.addPackage("nicehero");
+	let ins = fgui.UIPackage.createObject("nicehero", "main");
+	ins.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);
+	ins.addRelation(fgui.GRoot.inst, 24);
+	ins.name = "main";
+	contentlayer.addChild(ins);
+	
+	var animation = new PIXI.spine.Spine(gRes.spineboy.spineData); 
+	//app.stage.addChild(animation)
+	//this.initClicks(ins);
+	var bunny = PIXI.Sprite.fromImage('images/bunny.png');
+	ins.$container.addChild(bunny);
+	ins.$container.addChild(animation);
+	bunny.x = 160;
+	bunny.y = 15;
+	animation.y = 900;
+	animation.x = 400;
+	if (animation.state.hasAnimation('run')) {
+		// run forever, little boy!
+		animation.state.setAnimation(0, 'run', true);
+		// dont run too fast
+		animation.state.timeScale = 1.0;
+	}
+}
+var app = null;
+if (PIXI.utils.isMobile.any == false)
+{
+	app = new PIXI.Application({
+		view: document.querySelector("#canvasContainer2 canvas"),
+		backgroundColor: 0xb5b5b5  ,
+		antialias: true
+	});  
+	fgui.GRoot.inst.attachTo(app, {
+		designWidth: 640,
+		designHeight: 1136,
+		alignV: 3,
+		alignH: 0
+	});
+
+}
+else
+{
+	document.body.removeChild(document.querySelector("#canvasContainer2"));
+	app = new PIXI.Application({
+		view: document.querySelector("#canvasContainer canvas"),
+		backgroundColor: 0xb5b5b5  ,
+		antialias: true
+	});  
+	fgui.GRoot.inst.attachTo(app, {
+		designWidth: 640,
+		designHeight: 1136,
+		scaleMode: "fixedWidth",
+		orientation: "portrait",
+		alignV: 3,
+		alignH: 0
+	});
+
+}
+
+fgui.UIConfig.verticalScrollBar = "ui://nicehero/ScrollBar_VT";
+fgui.UIConfig.horizontalScrollBar = "ui://nicehero/ScrollBar_HZ";
+fgui.UIConfig.popupMenu = "ui://nicehero/PopupMenu";
+fgui.UIConfig.globalModalWaiting = "ui://nicehero/GlobalModalWaiting";
+fgui.UIConfig.windowModalWaiting = "ui://nicehero/WindowModalWaiting";
+
+
+var contentlayer = new fgui.GComponent();
+fgui.GRoot.inst.addChild(contentlayer);
+
+var loadingView = new fgui.GComponent();
+loadingView.textField = new fgui.GTextField();
+loadingView.textField.width = 500;
+loadingView.textField.fontSize = 26;
+loadingView.textField.x = loadingView.textField.width * .5;
+loadingView.textField.y = loadingView.textField.height * .5 - 40;
+loadingView.addChild(loadingView.textField);
+
+loadingView.setProgress = function(p)
+{
+	this.textField.text = `Loading...${Math.round(p)}%`;
+}
+
+loadingView.textField.addRelation(loadingView, 3);
+loadingView.textField.addRelation(loadingView, 10);
+
+contentlayer.addChild(loadingView);
+loadingView.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);
+loadingView.addRelation(fgui.GRoot.inst, 24);
+
+//test.jpg actually is a binary file but just ends with fake postfix.
+let loader = new fgui.utils.AssetLoader();
+loader.add("nicehero", "images/nicehero.jpg", { loadType: PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })
+	.add("nicehero@atlas0", "images/nicehero@atlas0.png")
+	.add("nicehero@atlas0_1", "images/nicehero@atlas0_1.png")
+	.add("nicehero@atlas0_2", "images/nicehero@atlas0_2.png")
+	.add("nicehero@atlas0_3", "images/nicehero@atlas0_3.png")
+	.add("nicehero@atlas0_4", "images/nicehero@atlas0_4.png")
+	.add("nicehero@atlas0_5", "images/nicehero@atlas0_5.png")
+	.add("nicehero@atlas0_6", "images/nicehero@atlas0_6.png")
+	.add("spineboy", "images/spineboy.json")
+	.on("progress", loadProgress, window)
+	.on("complete", resLoaded, window)
+	.load();
+</script>
+</body>
+</html>
