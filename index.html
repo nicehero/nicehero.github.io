@@ -8,10 +8,10 @@
 html, body{margin: 0; padding: 0; overflow: hidden; height: 100%; }
 #canvasContainer { position:absolute; left: 0; top: 0; width: 100%; height: 100%; }
 #canvasContainer canvas { transform: translateZ(0); }
-#canvasContainer2 { position:absolute; left: 0; top: 0; width: 640px; height: 960px; }
-#canvasContainer2 canvas { transform: translateZ(0); }
+#canvasContainer2 { margin:0 auto; top: 0; width: 640px; height: 960px; }
+#canvasContainer2 canvas { margin:0 auto;transform: translateZ(0); }
 </style>
-<script src="libs/pixi.min.js"></script>
+<script src="libs/pixi.js"></script>
 <script src="libs/pixi-spine.js"></script>
 <script src="libs/tweenjs-0.6.2.min.js"></script>
 <script src="libs/fairygui.js"></script>
@@ -67,18 +67,28 @@ function resLoaded(loader)
 		// dont run too fast
 		animation.state.timeScale = 1.0;
 	}
+	for (let i = 0; i < ins.numChildren; i++) {
+		let c = ins.getChildAt(i);
+		if (c.name == "btn_eoschattest")
+		{
+			c.click(()=>{window.location.href="https://nicehero.io/eoschattest/index.html"}, this);
+		}
+	}
+
 }
 var app = null;
 if (PIXI.utils.isMobile.any == false)
 {
+	document.body.removeChild(document.querySelector("#canvasContainer"));
 	app = new PIXI.Application({
-		view: document.querySelector("#canvasContainer2 canvas"),
+		view: document.querySelector("canvas"),
 		backgroundColor: 0xb5b5b5  ,
 		antialias: true
 	});  
 	fgui.GRoot.inst.attachTo(app, {
 		designWidth: 640,
-		designHeight: 1136,
+		designHeight: 960,
+		//scaleMode: "fixedWidth",
 		alignV: 3,
 		alignH: 0
 	});
@@ -94,9 +104,9 @@ else
 	});  
 	fgui.GRoot.inst.attachTo(app, {
 		designWidth: 640,
-		designHeight: 1136,
+		designHeight: 960,
 		scaleMode: "fixedWidth",
-		orientation: "portrait",
+		//orientation: "portrait",
 		alignV: 3,
 		alignH: 0
 	});
