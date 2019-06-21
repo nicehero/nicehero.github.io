@@ -9,11 +9,12 @@
 
 	<body>
 		<div id="info">
-			<a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> - ssao hack<br />
+			<a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> - ssao hack x13<br />
 		</div>
 
 		<script src="../build/three.js"></script>
 		<script src="js/libs/inflate.min.js"></script>
+		<script src="js/libs/dat.gui.min.js"></script>
 
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/loaders/GLTFLoader.js"></script>
@@ -24,13 +25,13 @@
 		<script src="js/libs/stats.min.js"></script>
 		<script src="js/effects/OutlineEffect.js"></script>
 		
-		<script src="js/shaders/SSAOShader.js"></script>
+		<script src="js/shaders/SSAOShader.js?v=13"></script>
 		<script src="js/shaders/NormalMapShader.js"></script>
 
 		<script src="js/postprocessing/EffectComposer.js"></script>
 		<script src="js/postprocessing/RenderPass.js"></script>
 		<script src="js/postprocessing/ShaderPass.js"></script>
-		<script src="js/postprocessing/SSAOPass.js"></script>
+		<script src="js/postprocessing/SSAOPass.js?v=12"></script>
 		<script src="js/postprocessing/SAOPass.js"></script>
 		<script src="js/shaders/CopyShader.js"></script>
 		<script src="js/math/SimplexNoise.js"></script>
@@ -61,6 +62,8 @@
 			//var newAni;
 			var yg;
 			var depthRenderTarget;
+			var ssaoOption;
+			var outLineOption;
 			init();
 			animate();
 			
@@ -188,7 +191,7 @@
 				scene.background = new THREE.Color( 0xeeeeee );
 				scene1 = new THREE.Scene();
 				scene1.background = new THREE.Color( 0xeeeeee );
-				light = new THREE.HemisphereLight( 0xbbbbff, 0x444422 );
+				light = new THREE.HemisphereLight( 0xbbbbff, 0x444455 );
 				light.position.set( 0, 1, 0 );
 				scene.add(scene1);
 				scene1.add( light );
@@ -330,6 +333,7 @@
 					ssaoPass.ssaoMaterial.morphTargets = true;
 					ssaoPass.ssaoMaterial.morphNormals = true;
 					
+					//ssaoPass.kernelSize = 16;
 					ssaoPass.kernelRadius = 0.08;
 					ssaoPass.maxDistance = 0.1;
 					ssaoPass.minDistance = 0.001;
@@ -347,7 +351,26 @@
 				// stats
 				stats = new Stats();
 				container.appendChild( stats.dom );
-
+				
+				let gui = new dat.GUI({width:200});
+				let folder = gui.addFolder("ssao");
+				let folder2 = gui.addFolder("light");
+				let folder3 = gui.addFolder("outLine");
+				ssaoOption = {
+					"enable":true,
+					"blur":true,
+				}
+				folder.add(ssaoOption,"enable");
+				folder.add(ssaoOption,"blur").onChange((b)=>{ssaoPass.blur = b});
+				let lightOption = {
+					"dirLight":true,
+				}
+				folder2.add(lightOption,"dirLight").onChange((b)=>{dirLight.visible = b});
+				outLineOption = {"enable":false};
+				folder3.add(outLineOption,"enable");
+				folder.open();
+				folder2.open();
+				folder3.open();
 			}
 
 			function onWindowResize() {
@@ -376,9 +399,18 @@
 
 
 				stats.update();
-				//renderer.render( scene, camera );
-				composer.render( scene, camera );
-				//effect.render( scene, camera );
+				if (ssaoOption.enable)
+				{
+					composer.render( mixerUpdateDelta );
+				}
+				else if (outLineOption.enable)
+				{
+					effect.render( scene, camera );
+				}
+				else
+				{
+					renderer.render( scene, camera );
+				}
 
 			}
 

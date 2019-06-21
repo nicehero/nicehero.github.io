@@ -15,14 +15,14 @@ THREE.SSAOPass = function ( scene, camera, width, height ) {
 	this.scene = scene;
 
 	this.kernelRadius = 8;
-	this.kernelSize = 32;
+	this.kernelSize = 8;
 	this.kernel = [];
 	this.noiseTexture = null;
 	this.output = 0;
 
 	this.minDistance = 0.005;
 	this.maxDistance = 0.1;
-
+	this.blur = true;
 	//
 
 	this.generateSampleKernel();
@@ -196,12 +196,31 @@ THREE.SSAOPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ),
 		this.renderPass( renderer, this.ssaoMaterial, this.ssaoRenderTarget );
 
 		// render blur
-
-		this.renderPass( renderer, this.blurMaterial, this.blurRenderTarget );
+		if (this.blur)
+		{
+			this.renderPass( renderer, this.blurMaterial, this.blurRenderTarget );
+		}
 
 		// output result to screen
 
 		switch ( this.output ) {
+			case THREE.SSAOPass.OUTPUT.Default:
+
+				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
+				this.copyMaterial.blending = THREE.NoBlending;
+				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+				if (this.blur)
+				{
+					this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.blurRenderTarget.texture;
+				}
+				else
+				{
+					this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.ssaoRenderTarget.texture;
+				}
+				this.copyMaterial.blending = THREE.CustomBlending;
+				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+
+				break;
 
 			case THREE.SSAOPass.OUTPUT.SSAO:
 
@@ -241,17 +260,6 @@ THREE.SSAOPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ),
 
 				break;
 
-			case THREE.SSAOPass.OUTPUT.Default:
-
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
-				this.copyMaterial.blending = THREE.NoBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
-
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.blurRenderTarget.texture;
-				this.copyMaterial.blending = THREE.CustomBlending;
-				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
-
-				break;
 
 			default:
 				console.warn( 'THREE.SSAOPass: Unknown output type.' );
